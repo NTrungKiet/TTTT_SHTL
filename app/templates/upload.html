@@ -1,0 +1,12 @@
+{% include 'home.html' %}
+<!-- {{ results }} -->
+<form method="POST" action="">
+    {% for page in results %}
+        <h3>Trang {{ page }}</h3>
+        {% for result in results[page] %}
+            {% for text in result %}
+                    <input class="input-container" type="text" value="{{ text }}" name="{{ page }}">
+            {% endfor %}
+        {% endfor %}
+    {% endfor %}
+</form>
