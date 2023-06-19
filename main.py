@@ -106,7 +106,7 @@ class OCR:
     
 
     def _ocr_from_pdf(self, pdf_path):
-        list_results = []
+        dict_results = {}
         pages = convert_from_path(pdf_path, poppler_path=r'D:\poppler-23.05.0\Library\bin')
         folder_name = os.path.join('pdf', os.path.basename(pdf_path)[:-4])
         for idx, page in enumerate(pages):
@@ -144,15 +144,17 @@ class OCR:
 #==================              Cắt ảnh rồi đem predict             ===========================        
 #                 
                     results.append(self.ocr_by_vietocr(cropped_img))
-                list_results.append({idx+1:results})
-                # print(list_results)
+                dict_results[idx+1]=results
+                # print(dict_results)
                 img.show()
-                break
+                print(idx)
+                if(idx == 1):
+                    break
             except Exception as e:
-                list_results.append({idx+1:e})
+                dict_results[idx+1]=e
                 # continue
                 
-        return list_results
+        return dict_results
 # ocr = OCR()
 # # readtext=ocr._ocr_from_pdf(r"C:\Users\ASUS\Downloads\VD1.pdf")
 # # readtext=ocr._ocr_from_pdf(r"C:\Users\ASUS\Downloads\NLNKHMT12.pdf")
