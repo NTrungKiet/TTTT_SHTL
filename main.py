@@ -48,12 +48,11 @@ class OCR:
     def text_partition(self, boxs):
         previous_box = np.array(boxs[0][0])
         max_length = len(boxs[0])
-        new_boxs = np.array(np.empty((max_length, 4, 2)), dtype=np.int32)
         i = 1
         j = 0
+        new_boxs = np.array(np.empty((max_length, 4, 2)), dtype=np.int32)
         new_boxs[j] = previous_box
         while( i < max_length):
-            flag = 0
             if (i > 1):
                 previous_box = np.array(new_boxs[j])
             current_box = np.array(boxs[0][i])
@@ -67,8 +66,7 @@ class OCR:
                 right_top = [max(previous_box[1][0], current_box[1][0]), min(previous_box[1][1], current_box[1][1])]
                 right_bottom = [max(previous_box[2][0], current_box[2][0]), max(previous_box[2][1], current_box[2][1])]
                 new_boxs[j]= [left_top, right_top, right_bottom, left_bottom]
-                flag = 1
-            elif (flag == 0):
+            else :
                 j+=1
                 new_boxs[j]=current_box
             i+=1
@@ -85,7 +83,7 @@ class OCR:
         for box_of_ocr in boxs_of_ocr[0]:         
 
             # for i in range(0, len(box_of_ocr)):
-            #     draw123.line(box_of_ocr[i] + (box_of_ocr[(i + 1) % len(box_of_ocr)]), fill='red', width=3)
+                # draw123.line(box_of_ocr[i] + (box_of_ocr[(i + 1) % len(box_of_ocr)]), fill='red', width=3)
             points_of_ocr = np.array(box_of_ocr, dtype=np.int32)
             points_of_ocr = self.convert(points_of_ocr)        
                             
@@ -96,12 +94,13 @@ class OCR:
             y_of_ocr = int(min(points_of_ocr[:,1]))
                             
 
-            cropped_img_of_ocr = cropped_img[y_of_ocr: y_of_ocr+height_of_ocr, x_of_ocr: x_of_ocr+width_of_ocr]
+            cropped_img_of_ocr = cropped_img[max(y_of_ocr-8,0): y_of_ocr+height_of_ocr+8, max(x_of_ocr-8, 0): x_of_ocr+width_of_ocr+8]
             pre_img_of_ocr = Image.fromarray(cropped_img_of_ocr)
             # pre_img_of_ocr.show()
             ocrResult = self.viet.predict(pre_img_of_ocr)
             ocrResult
             results.append(ocrResult)
+        # pre_img.show()
         return results
     
 
@@ -139,17 +138,15 @@ class OCR:
                     x = int(min(points[:,0]))
                     y = int(min(points[:,1]))
                     # Cắt ảnh theo vùng đã tính toán được
-                    cropped_img = image[y: y+height, x: x+width] 
+                    cropped_img = image[max(y-10, 0): y+height+10, max(x-10, 0): x+width+10] 
 
 #==================              Cắt ảnh rồi đem predict             ===========================        
 #                 
                     results.append(self.ocr_by_vietocr(cropped_img))
-                dict_results[idx+1]=results
+                dict_results[str(idx+1)]=results
                 # print(dict_results)
                 img.show()
-                print(idx)
-                if(idx == 1):
-                    break
+                break
             except Exception as e:
                 dict_results[idx+1]=e
                 # continue
@@ -164,7 +161,7 @@ class OCR:
 # def typeCheck(text):
 #     text =  text.lower()
 #     dateText = ['ngày', 'tháng', 'năm']
-#     typeText = ['tờ trình', 'văn bản', 'công văn', 'quyết định', 'thông báo', 'thông tư', 'hợp đồng', 'nghị định', 'nghị quyết']
+#     typeText = ['tờ trình', 'văn bản', 'công văn', 'quyết định', 'thông báo', 'thông tư']
 #     titleText = ['về việc', 'v/v', 'vlv']
 #     if len(text) > 300:
 #         return 'noi_dung'

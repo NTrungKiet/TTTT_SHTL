@@ -7,12 +7,16 @@ from .config import settings
 from .todo.routes import router as todo_router
 from typing import List
 import copy
+import re
+import numpy as np
 
 import sys
 sys.path.append(r"D:\TTTT\main.py")
+# sys.path.append(r"D:\TTTT\app\todo\models.py")
 
 import os
 from main import OCR
+from .todo.models import DocumentModel, TaskModel
 
 app = FastAPI()
 
@@ -45,102 +49,6 @@ async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
 
-# @app.get("/upload/", response_class=HTMLResponse)
-# async def upload(request: Request):
-#     global results
-#     results = {"1":[
-#                     ["CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM","Độc lập - Tự do - Hạnh phúc"],
-#                     ["HỢP ĐỒNG CUNG CẤP GIẢI PHÁP PHẦN MỀM CNTT","HỢP ĐỒNG CUNG CÁP DỊCH VỤ QUẢN LÝ KHÁM CHỮA BỆNH VNPT HIS",
-#                     "Số: 230104-04/VNPT VNP. VLG KH TCDN/HĐVN TT TIT"],
-#                     ["Căn cử Bộ luật dân sự số 91/2015/QH13 và các văn bản hướng dẫn thi hành;",
-#                     "Căn cứ Luật thương mại số 36/2005/QH11 và các văn bản hướng dẫn thi hành;",
-#                     "Căn cứ Luật viễn thông số 41/2009/QH12 và các văn bản hướng dẫn thi hành;",
-#                     "Cấn cứ Luật công nghệ thông tin số 67/2006/QH11 và các văn bản hướng dẫn thi hành;",
-#                     "Căn cứ các văn bản pháp luật khác có liên quan;","Căn cứ khả năng và điều kiện của các bên,",
-#                     "Hợp đồng cung cấp giải pháp phần mềm NTT (\" Hợp đồng') được lập và ký kết ngày",
-#                     "144 tháng 01 năm 2023, tại Trung tâm Y tế huyện Mang Thít, giữa các Bên dưới đây","B. BÊN SỬ DỤNG: TRUNG TÂM Y TẾ HUYỆN MANG THÍT",
-#                     "Địa chỉ","Khóm 4, Thị trấn Cái Nhum, huyện Mang Thít, Tỉnh Vĩnh Long","Điện thoại","02703840012","Fax","02703930071",
-#                     "Tài khoản","9523.2.1015211?9527.2.1015211/3714.0.1015211","Tại","Kho bạc Nhà nước huyện Mang Thít","Mã số thuế","1500476127",
-#                     "Người đại diện: Ông Bùi MINH TUẤN","Chức vụ","GIÁM ĐỐC","(Trong Hợp đồng gọi tắt là ?Bên A?)","Và",
-#                     "II. BÊN CUNG CẤP: TRUNG TÂM KINH DOANH LONG","CHI NHÁNH TỔNG CÔNG TY DỊCH VỤ VIỄN THÔNG","Địa chỉ",
-#                     "Số 03 đường Trưng Nữ Vương, phường 1, Tp Vĩnh Long, tỉnh Vĩnh Long","Điện thoại","02703338005","Fax","0270 3838959",
-#                     "Tài khoản","7300201005166","Tại","Ngân hàng Nông nghiệp & Phát triển nông thôn tỉnh Vĩnh Long","Mã số thuế","0106869738-039",
-#                     "Người đại diện : Ông PHAN HOÀNG QUÂN","Chức vụ","PHÓ GIÁM ĐỐC","(Theo giấy ủy quyền số 03/GUQ-TTKD VLG ? NSTH, Ngày 03/01/2023)"],
-#                     ["(Trong Hợp đồng gọi tắt là ?Bên B?"],
-#                     ["Sau khi thỏa thuận và thống nhất, các bên đồng ý ký kết Hợp đồng với các điều tru",
-#                     "khoản và điều kiện như sau:","1/27"]
-#                     ],
-#                     "2":[
-#                     ["CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM","Độc lập - Tự do - Hạnh phúc"],
-#                     ["HỢP ĐỒNG CUNG CẤP GIẢI PHÁP PHẦN MỀM CNTT","HỢP ĐỒNG CUNG CÁP DỊCH VỤ QUẢN LÝ KHÁM CHỮA BỆNH VNPT HIS",
-#                     "Số: 230104-04/VNPT VNP. VLG KH TCDN/HĐVN TT TIT"],
-#                     ["Căn cử Bộ luật dân sự số 91/2015/QH13 và các văn bản hướng dẫn thi hành;",
-#                     "Căn cứ Luật thương mại số 36/2005/QH11 và các văn bản hướng dẫn thi hành;",
-#                     "Căn cứ Luật viễn thông số 41/2009/QH12 và các văn bản hướng dẫn thi hành;",
-#                     "Cấn cứ Luật công nghệ thông tin số 67/2006/QH11 và các văn bản hướng dẫn thi hành;",
-#                     "Căn cứ các văn bản pháp luật khác có liên quan;","Căn cứ khả năng và điều kiện của các bên,",
-#                     "Hợp đồng cung cấp giải pháp phần mềm NTT (\" Hợp đồng') được lập và ký kết ngày",
-#                     "144 tháng 01 năm 2023, tại Trung tâm Y tế huyện Mang Thít, giữa các Bên dưới đây","B. BÊN SỬ DỤNG: TRUNG TÂM Y TẾ HUYỆN MANG THÍT",
-#                     "Địa chỉ","Khóm 4, Thị trấn Cái Nhum, huyện Mang Thít, Tỉnh Vĩnh Long","Điện thoại","02703840012","Fax","02703930071",
-#                     "Tài khoản","9523.2.1015211?9527.2.1015211/3714.0.1015211","Tại","Kho bạc Nhà nước huyện Mang Thít","Mã số thuế","1500476127",
-#                     "Người đại diện: Ông Bùi MINH TUẤN","Chức vụ","GIÁM ĐỐC","(Trong Hợp đồng gọi tắt là ?Bên A?)","Và",
-#                     "II. BÊN CUNG CẤP: TRUNG TÂM KINH DOANH LONG","CHI NHÁNH TỔNG CÔNG TY DỊCH VỤ VIỄN THÔNG","Địa chỉ",
-#                     "Số 03 đường Trưng Nữ Vương, phường 1, Tp Vĩnh Long, tỉnh Vĩnh Long","Điện thoại","02703338005","Fax","0270 3838959",
-#                     "Tài khoản","7300201005166","Tại","Ngân hàng Nông nghiệp & Phát triển nông thôn tỉnh Vĩnh Long","Mã số thuế","0106869738-039",
-#                     "Người đại diện : Ông PHAN HOÀNG QUÂN","Chức vụ","PHÓ GIÁM ĐỐC","(Theo giấy ủy quyền số 03/GUQ-TTKD VLG ? NSTH, Ngày 03/01/2023)"],
-#                     ["(Trong Hợp đồng gọi tắt là ?Bên B?"],
-#                     ["Sau khi thỏa thuận và thống nhất, các bên đồng ý ký kết Hợp đồng với các điều tru",
-#                     "khoản và điều kiện như sau:","1/27"]
-#                     ]}
-#     content = {'request':request, 'results':results}
-#     return templates.TemplateResponse("upload.html", content)
-
-@app.post("/save", response_class=HTMLResponse)
-async def save_ocr(inputs: List[str] = Form(...)):
-    copied_results = copy.deepcopy(results)
-    temp = []# lưu các text đẫ xóa
-    # i = 1
-    while(len(inputs)>0):
-        try:
-            for page in copied_results:
-                # print("======================== Lần {} ==================".format(i))
-                if(len(copied_results[page]) == 0):
-                    copied_results.pop(page)
-                    # print('1')
-                elif(len(copied_results[page][0])>0):
-                    result = copied_results[page][0]
-                    # print("result = ", result)
-                    # print("temp = ",temp)
-                    # print("inputs[0] = ", inputs[0])
-                    # print("result[0] = ", result[0])
-                    index1 = results[page].index(temp+result) 
-                    # print("index = ",index1)
-                    if(inputs[0] != result[0]):
-                        index2 = results[page][index1].index(result[0])
-                        results[page][index1][index2] = inputs[0]
-                        temp.append(inputs[0])
-                        copied_results[page][0].pop(0)
-                        # print('Thay đổi')
-                    else:
-                        temp.append(result[0])
-                        copied_results[page][0].pop(0)
-                        # print("Không")
-                    # i+=1    
-                    inputs.pop(0)
-                else :
-                    temp = []
-                    copied_results[page].pop(0)
-                break
-        except Exception as e:
-            print(e)
-            return JSONResponse(content={'results': 'error'}, status_code=401)
-    return JSONResponse(content={'results': results}, status_code=200)
-
-
-# @app.post('/save_ocr')
-# async def save_ocr()
-
-# Endpoint /pdf_ocr
 @app.post('/pdf_ocr', response_class=HTMLResponse)
 async def pdf_ocr(request: Request,file: UploadFile = File(...)):
     ocr = OCR()
@@ -158,25 +66,76 @@ async def pdf_ocr(request: Request,file: UploadFile = File(...)):
         # return JSONResponse(content= {'results' : ocr._ocr_from_pdf(pdf_file)}, status_code=200)
     else:
         return JSONResponse(content={'results': 'error'}, status_code=401)
-    
 
-# {"results":{"1":[["CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM","Độc lập - Tự do - Hạnh phúc"],
-# ["HỢP ĐỒNG CUNG CẤP GIẢI PHÁP PHẦN MỀM CNTT","HỢP ĐỒNG CUNG CÁP DỊCH VỤ QUẢN LÝ KHÁM CHỮA BỆNH VNPT HIS","Số: 
-# 230104-04/VNPT VNP. VLG KH TCDN/HĐVN TT TIT"],
-# ["Căn cử Bộ luật dân sự số 91/2015/QH13 và các văn bản hướng dẫn thi hành;",
-# "Căn cứ Luật thương mại số 36/2005/QH11 và các văn bản hướng dẫn thi hành;",
-# "Căn cứ Luật viễn thông số 41/2009/QH12 và các văn bản hướng dẫn thi hành;",
-# "Cấn cứ Luật công nghệ thông tin số 67/2006/QH11 và các văn bản hướng dẫn thi hành;",
-# "Căn cứ các văn bản pháp luật khác có liên quan;","Căn cứ khả năng và điều kiện của các bên,",
-# "Hợp đồng cung cấp giải pháp phần mềm NTT (\" Hợp đồng') được lập và ký kết ngày",
-# "144 tháng 01 năm 2023, tại Trung tâm Y tế huyện Mang Thít, giữa các Bên dưới đây","B. BÊN SỬ DỤNG: TRUNG TÂM Y TẾ HUYỆN MANG THÍT",
-# "Địa chỉ","Khóm 4, Thị trấn Cái Nhum, huyện Mang Thít, Tỉnh Vĩnh Long","Điện thoại","02703840012","Fax","02703930071",
-# "Tài khoản","9523.2.1015211?9527.2.1015211/3714.0.1015211","Tại","Kho bạc Nhà nước huyện Mang Thít","Mã số thuế","1500476127",
-# "Người đại diện: Ông Bùi MINH TUẤN","Chức vụ","GIÁM ĐỐC","(Trong Hợp đồng gọi tắt là ?Bên A?)","Và",
-# "II. BÊN CUNG CẤP: TRUNG TÂM KINH DOANH LONG","CHI NHÁNH TỔNG CÔNG TY DỊCH VỤ VIỄN THÔNG","Địa chỉ",
-# "Số 03 đường Trưng Nữ Vương, phường 1, Tp Vĩnh Long, tỉnh Vĩnh Long","Điện thoại","02703338005","Fax","0270 3838959",
-# "Tài khoản","7300201005166","Tại","Ngân hàng Nông nghiệp & Phát triển nông thôn tỉnh Vĩnh Long","Mã số thuế","0106869738-039",
-# "Người đại diện : Ông PHAN HOÀNG QUÂN","Chức vụ","PHÓ GIÁM ĐỐC","(Theo giấy ủy quyền số 03/GUQ-TTKD VLG ? NSTH, Ngày 03/01/2023)"],
-# ["(Trong Hợp đồng gọi tắt là ?Bên B?"],["Sau khi thỏa thuận và thống nhất, các bên đồng ý ký kết Hợp đồng với các điều tru",
-# "khoản và điều kiện như sau:","1/27"]]}}
+
+@app.post("/save")
+async def save_ocr(inputs: List[str] = Form(...)):
+    copied_results = copy.deepcopy(results)
+    temp = []# lưu các text đẫ xóa
+    # i = 1
+    #=================================================== Cập nhật thông tin trước khi lưu =======================================
+    while(len(inputs)>0):
+        try:
+            for page in copied_results:
+                if(len(copied_results[page]) == 0):
+                    copied_results.pop(page)
+                elif(len(copied_results[page][0])>0):
+                    result = copied_results[page][0]
+                    index1 = results[page].index(temp+result) 
+                    # print("index = ",index1)
+                    if(inputs[0] != result[0]):
+                        index2 = results[page][index1].index(result[0])
+                        results[page][index1][index2] = inputs[0]
+                        temp.append(inputs[0])
+                        copied_results[page][0].pop(0)
+                    else:
+                        temp.append(result[0])
+                        copied_results[page][0].pop(0)   
+                    inputs.pop(0)
+                else :
+                    temp = []
+                    copied_results[page].pop(0)
+                break
+        except Exception as e:
+            return JSONResponse(content={'results': 'error'}, status_code=401)
+#=====================================================Tiến thành lưu văn bản=======================================================================
+    
+    content = []
+    copied_results = copy.deepcopy(results['1'])
+    number = ''
+    datetext = ''
+    typetext = ''
+    titletext = ''
+    while(len(copied_results)>0):
+        if(len(copied_results[0])==0):
+            copied_results.pop(0)
+            continue
+        text = copied_results[0][0]
+        text =  text.lower()
+        if(re.search(r"^số:(.*)", text)):
+            number = re.search(r"^số:(.*)", text).group(1)
+        elif(re.search( r'[^,]{0,11}, ngày (\d{1,2}) tháng (\d{1,2}) năm (\d{4})', text)):
+            datetext = re.search( r'[^,]{0,11}, ngày (\d{1,2}) tháng (\d{1,2}) năm (\d{4})', text).group()
+        elif(re.search(r'^(tờ trình|văn bản|công văn|quyết định|thông báo|thông tư)$', text)):
+            typetext = re.search(r'^(tờ trình|văn bản|công văn|quyết định|thông báo|thông tư)$', text).group()
+        elif(re.search(r'^(về việc|v/v|vlv)(.*)', text)):
+            titletext = ' '.join(copied_results[0])
+            copied_results.pop(0)
+            continue
+        else:
+            content.append(text)
+        copied_results[0].pop(0)
+
+    values = np.array([value for key, value in results.items() if key not in ['1']])
+    content += list(values.reshape(-1))
+
+    model = DocumentModel(typetext=typetext, number=number, titletext=titletext, datetext=datetext, content=content)
+    await app.mongodb['Documents'].insert_one(model.dict())
+
+    return JSONResponse(content={'results': results}, status_code=200)
+    # return model
+
+
+
+    
     
