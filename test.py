@@ -39,12 +39,32 @@
 #     content = match.group()
 #     print(content)  # Kết quả: v/v
 
-import numpy as np
+# import numpy as np
 
-# Mảng 3 chiều
-my_array_3d = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+# # Mảng 3 chiều
+# my_array_3d = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
 
-# Chuyển đổi mảng 3 chiều thành mảng 1 chiều
-my_array_1d = my_array_3d.reshape(-1)
+# # Chuyển đổi mảng 3 chiều thành mảng 1 chiều
+# my_array_1d = my_array_3d.reshape(-1)
 
-print(my_array_1d)
+# print(my_array_1d)
+
+import uuid
+from fastapi import FastAPI
+from pymongo import MongoClient
+from bson import Binary
+
+app = FastAPI()
+mongo_client = MongoClient("mongodb://localhost:27017")
+db = mongo_client["your_database"]
+collection = db["your_collection"]
+
+# @app.post("/create_document")
+# async def create_document():
+    # Tạo một UUID ngẫu nhiên
+text = [["Nguyễn Trung Kiệt"], ["Nguyễn Trung Tín"]]
+A = []
+B = [i for i in text[0]]
+A.append(B)
+for i in A:
+    print(i)

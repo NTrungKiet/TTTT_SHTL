@@ -1,0 +1,59 @@
+{% include 'head.html' %}
+<style>
+    .container th, .container td {
+        padding: 20px;
+        border: 1px solid #000;
+    }
+    
+    .table {
+        border-collapse: collapse;
+        text-align: center;
+    }
+    .row {
+        margin: 10px;
+    }
+    
+    .table-container {
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .view-more-button {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    function handleViewMore(id) {
+        window.location.href = "/updated/" + id;
+    }
+</script>
+
+<div class="container">
+    <div class="table-container">
+        <table class="table">
+            <tr>
+                <th>STT</th>
+                <th colspan="2">Tên văn bản</th>
+            </tr>
+            {% for document in documents %}
+                <tr class="row">
+                    <td>
+                        {{ loop.index }}
+                    </td>
+                    <td> 
+                        {{ document.titletext }}
+                    </td>
+                    <td>
+                        <button class="view-more-button" onclick="handleViewMore('{{ document._id }}')"> Xem thêm</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>

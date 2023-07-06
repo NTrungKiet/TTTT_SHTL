@@ -2,13 +2,14 @@ from typing import Optional
 import uuid 
 from pydantic import BaseModel, Field
 from typing import List
+# from bson import Binary
 
 class DocumentModel(BaseModel):
-    typetext: str 
+    typetext: str
     datetext: str 
-    titletext: str 
+    titletext: str
     number: str 
-    content: List[str] 
+    content: List[str]
 
 
 class UpdateDocumentModel(BaseModel):
@@ -20,7 +21,7 @@ class UpdateDocumentModel(BaseModel):
 
 
 class TaskModel(BaseModel):
-    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+    id: str = Field(default_factory=uuid.uuid4(), alias="_id")
     name: str = Field(...)
     completed: bool = False
     # Địhn nghĩa class default

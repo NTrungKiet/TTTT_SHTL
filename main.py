@@ -145,39 +145,12 @@ class OCR:
                     results.append(self.ocr_by_vietocr(cropped_img))
                 dict_results[str(idx+1)]=results
                 # print(dict_results)
-                img.show()
-                break
+                # img.show()
             except Exception as e:
                 dict_results[idx+1]=e
                 # continue
                 
         return dict_results
-# ocr = OCR()
-# # readtext=ocr._ocr_from_pdf(r"C:\Users\ASUS\Downloads\VD1.pdf")
-# # readtext=ocr._ocr_from_pdf(r"C:\Users\ASUS\Downloads\NLNKHMT12.pdf")
-# # print(readtext)
-# # C:\Users\ASUS/.cache\torch\hub\checkpoints\vgg19_bn-c79401a0.pth
-
-# def typeCheck(text):
-#     text =  text.lower()
-#     dateText = ['ngày', 'tháng', 'năm']
-#     typeText = ['tờ trình', 'văn bản', 'công văn', 'quyết định', 'thông báo', 'thông tư']
-#     titleText = ['về việc', 'v/v', 'vlv']
-#     if len(text) > 300:
-#         return 'noi_dung'
-    
-#     if 'số' in text:
-#         return 'so_van_ban'
-#     if any(word in text for word in dateText):
-#         return 'ngay_van_ban'
-#     if any(word in text for word in typeText):
-#         return 'loai_van_ban'
-#     if any(word in text for word in titleText):
-#         return 'trich_yeu'
-    
-#     return 'noi_dung'
-
-
  
 # #================================================================================================================================================
 

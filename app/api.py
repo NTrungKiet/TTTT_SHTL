@@ -1,22 +1,40 @@
-from fastapi import FastAPI, File, UploadFile, Form, Body, Request
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
+from fastapi import FastAPI, File, UploadFile, Form, Request, Query
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi.templating import Jinja2Templates
+from starlette.responses import Response
 from .config import settings
 from .todo.routes import router as todo_router
 from typing import List
 import copy
 import re
 import numpy as np
+import json
 
 import sys
 sys.path.append(r"D:\TTTT\main.py")
 # sys.path.append(r"D:\TTTT\app\todo\models.py")
-
+from bson import ObjectId
 import os
 from main import OCR
-from .todo.models import DocumentModel, TaskModel
+from .todo.models import DocumentModel, UpdateDocumentModel
+
+'''
+import pymongo
+# Khoi tao ket noi den mongodb
+connection = pymongo.MongoClient('mongodb://127.0.0.1:27017')
+myDB = connection["todo"]
+col = myDB['Documents']
+
+# Insert
+abc = col.insert_one({'datetext': "03/07/2023"})
+# Search
+result = col.find({}, {'_id': 0})
+
+for i in result:
+    print(i)
+'''
 
 app = FastAPI()
 
@@ -32,7 +50,7 @@ app.add_middleware(
 #"D:\TTTT\app\templates"
 templates = Jinja2Templates(directory="D:/TTTT/app/templates")
 
-app.include_router(todo_router, tags=["tasks"], prefix="/task")
+app.include_router(todo_router, tags=["Documents"], prefix="/documents")
 
 @app.on_event("startup")
 async def startup_db():
@@ -68,8 +86,8 @@ async def pdf_ocr(request: Request,file: UploadFile = File(...)):
         return JSONResponse(content={'results': 'error'}, status_code=401)
 
 
-@app.post("/save")
-async def save_ocr(inputs: List[str] = Form(...)):
+@app.post("/save", response_class=HTMLResponse)
+async def save_ocr(request: Request ,inputs: List[str] = Form(...)):
     copied_results = copy.deepcopy(results)
     temp = []# lưu các text đẫ xóa
     # i = 1
@@ -106,6 +124,7 @@ async def save_ocr(inputs: List[str] = Form(...)):
     datetext = ''
     typetext = ''
     titletext = ''
+    # try:
     while(len(copied_results)>0):
         if(len(copied_results[0])==0):
             copied_results.pop(0)
@@ -119,21 +138,52 @@ async def save_ocr(inputs: List[str] = Form(...)):
         elif(re.search(r'^(tờ trình|văn bản|công văn|quyết định|thông báo|thông tư)$', text)):
             typetext = re.search(r'^(tờ trình|văn bản|công văn|quyết định|thông báo|thông tư)$', text).group()
         elif(re.search(r'^(về việc|v/v|vlv)(.*)', text)):
-            titletext = ' '.join(copied_results[0])
+            titletext+= ' '.join(copied_results[0])
             copied_results.pop(0)
             continue
         else:
             content.append(text)
         copied_results[0].pop(0)
+    for key, values in results.items():
+        if (key == '1'):
+            continue
+        for value in values:
+            content+= value
+    document = DocumentModel(typetext=typetext, number=number, titletext=titletext, datetext=datetext, content=content)
+    await app.mongodb['Documents'].insert_one(document.dict())
+    
+    model = await app.mongodb['Documents'].find_one({"titletext":document.dict()['titletext']})
+    ID = str(model['_id'])  
+    url = f"/updated/{ID}"
+    return Response(status_code=303, headers={"Location": url})
 
-    values = np.array([value for key, value in results.items() if key not in ['1']])
-    content += list(values.reshape(-1))
 
-    model = DocumentModel(typetext=typetext, number=number, titletext=titletext, datetext=datetext, content=content)
-    await app.mongodb['Documents'].insert_one(model.dict())
+@app.get('/updated/{ID}', response_class=HTMLResponse)
+async def updated(request: Request, ID: str):
+    document = await app.mongodb['Documents'].find_one({"_id":ObjectId(ID)})
+    document["_id"] = str(document["_id"])
+    return templates.TemplateResponse("updated.html", {"request":request, "document":document, "ID":ID})
 
-    return JSONResponse(content={'results': results}, status_code=200)
-    # return model
+
+@app.get("/search")
+async def search(request: Request, keyword: str):
+    print(keyword)
+    list_id = []
+    for doc in await app.mongodb["Documents"].find({"titletext": {"$regex": keyword, "$options": "i"}}).to_list(length=None):
+        list_id.append(str(doc['_id']))
+    return {'list_id': list_id}
+
+@app.get("/search-results")
+async def search_results(request: Request, list_id: str):
+    list_id = eval(list_id)
+    documents = []
+    for id in list_id:
+        document = await request.app.mongodb['Documents'].find_one({"_id": ObjectId(id)})
+        document['_id'] = str(document['_id'])
+        documents.append(document)
+    return templates.TemplateResponse("search_results.html", {"request": request, "documents": documents})
+
+
 
 
 

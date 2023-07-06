@@ -1,0 +1,105 @@
+{% include 'head.html' %}
+<form id="myForm">
+    <!-- <input type="hidden" name="_method" value="PUT"> -->
+    <div class="container-updated">
+        <div class="text">
+            <label for="number">Số văn bản: </label>
+            <input class="input-updated" type="text" value="{{ document.number }}" name="number" id="number">
+        </div>
+        <div class="text">
+            <label for="datetext">Thời gian: </label>
+            <input class="input-updated" type="text" value="{{ document.datetext }}" name="datetext" id="datetext">
+        </div>
+        <div class="text">
+            <label for="typetext">Loại văn bản: </label>
+            <input class="input-updated" type="text" value="{{ document.typetext }}" name="typetext" id="typetext">
+        </div>
+        <div class="text">
+            <label for="titletext">Tên văn bản: </label>
+            <textarea class="input-updated textarea-auto" id="titletext" name="titletext">{{ document.titletext }}</textarea>
+        </div>
+        <div class="text">
+            <label for="content">Nội dung văn bản: </label>
+            <textarea class="input-updated textarea-auto" id="content" name="content">{{ '\n'.join(document.content) }}</textarea>
+        </div>
+        <div class="button-container-updated">
+            <button class="add" type="submit">Thêm Document mới!</button>
+            <button class="fix" type="submit">Cập nhật</button>
+            <button class="delete" type="submit">Xóa</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    function adjustTextareaHeight(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    var textareas = document.querySelectorAll('textarea.textarea-auto');
+    textareas.forEach(function(textarea) {
+        textarea.addEventListener('input', function() {
+            adjustTextareaHeight(this);
+        });
+        window.addEventListener('resize', function() {
+            adjustTextareaHeight(textarea);
+        });
+        adjustTextareaHeight(textarea);
+    });
+
+    document.getElementById("myForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        var buttonClass = event.submitter.className;
+        if (buttonClass === "add") {
+            window.location.href = "/home";
+        } else if (buttonClass === "fix") {
+            var confirmation = confirm('Xác nhận cập nhật');
+            if(confirmation){
+                var form = document.getElementById("myForm");
+                var formData = new FormData(form);
+                var xhr = new XMLHttpRequest();
+                xhr.open("PUT", "/documents/update_document/{{ID}}", true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            // Request successful
+                            alert("Cập nhật thành công !!!");
+                            window.location.href = "/updated/{{ID}}";
+                        } else {
+                            // Request failed
+                            console.log("Error:", xhr.status);
+                        }
+                    }
+                };
+            }
+            else{
+
+            }
+            xhr.send(new URLSearchParams(formData));
+        } else if (buttonClass === "delete") {
+            var confirmation = confirm('Bạn có chắc chắn muốn tiếp tục?');
+            if(confirmation){
+                var form = document.getElementById("myForm");
+                var formData = new FormData(form);
+                var xhr = new XMLHttpRequest();
+                xhr.open("DELETE", "/documents/delete_document/{{ID}}", true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            // Request successful
+                            alert("Xóa thành công !!!");
+                            window.location.href = "/home";
+                        } else {
+                            // Request failed
+                            console.log("Error:", xhr.status);
+                        }
+                    }
+                };
+                xhr.send(new URLSearchParams(formData));
+            }
+            else{
+
+            }
+        }
+    });
+</script>

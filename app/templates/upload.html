@@ -1,14 +1,18 @@
 {% include 'home.html' %}
 <!-- {{ results }} -->
-<form method="post" action="/save" enctype="multipart/form-data">
+<div class="container">
+    <form method="post" action="/save" enctype="multipart/form-data">
     <!-- {{results}} -->
-    {% for page in results %}
-        <h3>Trang {{ page }}</h3>
-        {% for result in results[page] %}
-            {% for text in result %}
-                    <input class="input-container" type="text" value="{{ text }}" name="inputs" id="input{{ page }}"  required>
-            {% endfor %}
+        {% for page in results %}
+            <h3 style="margin: 16px 0;">Trang {{ page }}</h3>
+            <div class="box">
+                {% for result in results[page] %}
+                    {% for text in result %}
+                            <input class="input-container" type="text" value="{{ text }}" name="inputs" id="input{{ page }}" >
+                    {% endfor %}
+                {% endfor %}
+            </div>
         {% endfor %}
-    {% endfor %}
-    <button type="submit" style="margin-top: 16px; size: 64px; width: 100px; height: 30px;">Lưu</button>
-</form>
+        <button type="submit" style="margin: 16px; size: 64px; width: 100px; height: 30px;">Lưu</button>
+    </form>
+</div>

@@ -4,10 +4,50 @@
         <meta charset="UTF-8">
         <title>Số hóa tài liệu</title>
         <style>
-            body {
+            .upload{
+                /* height: 40px; */
+                padding: 16px 0;
+                background-color: greenyellow;
+                color: #ffffff;
+            }
+            .container-updated , .container {
                 max-width: 1240px;
+                margin: auto;
+            }
+            .container{
                 text-align: center;
             }
+            
+            .box{
+                padding: 8px ;
+                margin-top: 32px;
+                border: 0.5px solid black;
+                box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.5);       
+            }
+
+            .text{
+                /* display: block; */
+                font-size: 18px;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                margin-top: 16px;
+            }
+            
+            .text label {
+                flex-basis: 150px;
+                margin-right: 10px;
+            }
+
+            .text .input-updated {
+                flex-grow: 1;
+            }
+            .input-updated{
+                margin-left: 16px;
+                font-size: 16px;
+                width: 800px;   
+            }
+
             .input-container {
                 margin: 8px 0;
                 display: block;
@@ -19,6 +59,98 @@
             .input-container:focus{
                 outline: none;
             }
+            
+
+            .textarea-auto {
+                height: auto;
+                min-height: 50px; 
+                resize: none; 
+            }
+
+            .button-container-updated {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .button-container-updated button {
+                margin:30px 0;
+                font-size: 16px;
+                background: none;
+                /* background-color: #ff0000;  */
+                color: #ffffff; 
+                padding: 10px 20px; 
+                border: none; 
+                cursor: pointer; 
+            }
+            .button-container-updated .add{
+                background-color: black;
+            }
+            .button-container-updated .fix{
+                background-color: green;
+            }
+            .button-container-updated .delete{
+                background-color: red;
+            }
+            .search-bar {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8px;
+                background-color: greenyellow;
+                height: 100px;
+            }
+            
+            .search-bar input[type="text"] {
+                width: 320px;
+                padding: 8px;
+                border: none;
+                outline: none;
+                border-radius: 4px;
+            }
+
+            .search-bar button {
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .table-row{
+                border: 1px solid black;
+            }
         </style>
     </head>
+    <body>
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Nhập tên văn bản cần tìm">
+          <button id="search-button">Tìm kiếm</button>
+        </div>
+      
+        <script>
+
+          // Bắt sự kiện click vào nút Tìm kiếm
+          document.getElementById('search-button').addEventListener('click', function() {
+            var keyword = document.getElementById('search-input').value;
+            // Thực hiện xử lý tìm kiếm ở đây
+            // alert('Đã tìm kiếm từ khóa: ' + keyword);
+            search(keyword);
+        });
+
+        function search(keyword) {
+            fetch('/search?keyword=' + encodeURIComponent(keyword))
+                .then(response => response.json())
+                .then(data => {
+                    // Xử lý kết quả tìm kiếm
+                    console.log(data);
+                    window.location.href = '/search-results?list_id=' + encodeURIComponent(JSON.stringify(data.list_id));
+                })
+                .catch(error => {
+                    // Xử lý lỗi
+                    console.error(error);
+                });
+        }
+
+        </script>
+      </body>
 </html>

@@ -1,51 +1,44 @@
-from fastapi import APIRouter, Body, Request, HTTPException, status
+from fastapi import APIRouter, Form, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-
-from .models import TaskModel, UpdateTaskModel
+from typing import List
+from .models import DocumentModel
+from bson import ObjectId
 
 router = APIRouter()
 
 #Lấy ALL list
-@router.get("/", response_description="List all tasks")
-async def List_tasks(request: Request):
-    tasks = []
-    for doc in await request.app.mongodb["tasks"].find().to_list(length=100):
-        tasks.append(doc)
-    return tasks
+@router.get("/", response_description="List all Documents")
+async def List_documents(request: Request):
+    documents = []
+    for doc in await request.app.mongodb["Documents"].find().to_list(length=None):
+        doc['_id'] = str(doc['_id'])
+        documents.append(doc)
+    return documents
 
 # Lấy theo id
-@router.get("/{id}", response_description="Get task detail")
-async def get_task(id: str, request: Request):
-    if(task := await request.app.mongodb['tasks'].find_one({"_id":id})) is not None:
-        return task
+@router.get("/{id}", response_description="Get document detail")
+async def get_document(id: str, request: Request):
+    if(document := await request.app.mongodb['Documents'].find_one({"_id": ObjectId(id)})) is not None:
+        document["_id"] = str(document["_id"])
+        return document
     
     raise HTTPException(status_code=404, detail= f"Tag {id} not found")
 
 # Update
 
-@router.put("/{id}", response_description="Update a task")
-async def update_task(id:str, request:Request, task: UpdateTaskModel = Body(...)):
-    task = {k: v for k, v in task.dict().items() if v is not None}
-
-    if(len(task) >= 1):
-        update_task_resulut = await request.app.mongodb['tasks'].update_one({"_id":id}, {"$set": task})
-        if (update_task_resulut.modified_count == 1):
-            if(update_task := await request.app.mongodb['tasks'].find_one({"_id":id})) is not None:
-                return update_task
-            
-    if(existing_task := await request.app.mongodb["tasks"].find_one({"_id":id})) is not None:
-        return existing_task
-    
-    raise HTTPException(status_code=404, detail=f"task {id} not found")
-
-@router.delete('/{id}', response_description="Delete a task")
-async def delete_task(id:str, request:Request):
-    delete_task = await request.app.mongodb['tasks'].delete_one({"_id":id})
-    if delete_task.deleted_count == 1:
-        return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content={'tc':"Update completed"})
-    
-    raise HTTPException(status_code=404, detail=f"task {id} not found")
+@router.put("/update_document/{id}", response_description="Update a document")
+async def update_document(id:str, request:Request, number: str = Form(...), datetext: str = Form(...), typetext: str = Form(...), titletext: str = Form(...), 
+                  content: str = Form(...)):
+    content = content.replace('\r', '')
+    content = content.split('\n')
+    document = DocumentModel(number=number, datetext=datetext, typetext=typetext, titletext=titletext, content=content).dict()
+    await request.app.mongodb['Documents'].update_one({"_id":ObjectId(id)}, {"$set": document})
+    return 0
+@router.delete('/delete_document/{id}', response_description="Delete a document")
+async def delete_document(id:str, request:Request):
+    await request.app.mongodb['Documents'].delete_one({"_id":ObjectId(id)})
+    return 0
 
 
     
